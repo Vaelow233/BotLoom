@@ -1,0 +1,41 @@
+# Don't change this!
+version: 1
+
+# Bot Configuration
+bot:
+  # What types of bots would you use
+  # Supported types: qq-ob11
+  types:
+    - "qq-ob11"
+
+  # The configuration of the bot type of qq-ob11
+  qq-ob11:
+    scheme: "ws"
+    host: "127.0.0.1"
+    port: 3001
+    token: "ChangeThisToYourToken"
+
+# Storage Configuration
+storage:
+  # What types of databases would you like to use
+  # Supported types: sqlite, mysql, postgres
+  type: "sqlite"
+
+  # Local database configuration (for sqlite)
+  local:
+    file: "app.db"
+    # Raw JDBC URL query parameters
+    # Example: busy_timeout=5000
+    arguments: ""
+
+  # Remote database configuration (for MySQL and PostgreSQL)
+  remote:
+    host: "127.0.0.1"
+    port: 3306
+    username: "root"
+    password: "passw0rd"
+    database: "botloom"
+    # Raw JDBC URL query parameters
+    # MySQL example: "useSSL=false&connectionTimeZone=UTC"
+    # PostgreSQL example: "sslmode=disable"
+    arguments: ""
