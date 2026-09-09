@@ -16,4 +16,13 @@ public enum DatabaseType {
     public Set<String> aliases() {
         return aliases;
     }
+
+    public static DatabaseType fromString(String type) {
+        for (DatabaseType databaseType : DatabaseType.values()) {
+            if (databaseType.aliases.contains(type.toLowerCase())) {
+                return databaseType;
+            }
+        }
+        return null;
+    }
 }
