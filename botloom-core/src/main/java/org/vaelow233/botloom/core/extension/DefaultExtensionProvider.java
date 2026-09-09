@@ -26,17 +26,38 @@ public class DefaultExtensionProvider implements ExtensionProvider {
         pluginManager.startPlugins();
         extensions.addAll(pluginManager.getExtensions(BotLoomExtension.class));
         for (BotLoomExtension extension : extensions) {
-            extension.enable(context);
+            try {
+                extension.enable(context);
+            } catch (Exception | LinkageError e) {
+                context.logger().error("Failed to enable extension", e);
+                try {
+                    extension.disable();
+                } catch (Exception | LinkageError e2) {
+                    context.logger().error("Failed to disable extension", e2);
+                }
+            }
         }
     }
 
     @Override
-    public void unload() {
+    public void unload(BotLoomContext context) {
         for (BotLoomExtension extension : extensions) {
-            extension.disable();
+            try {
+                extension.disable();
+            } catch (Exception | LinkageError e) {
+                context.logger().error("Failed to disable extension", e);
+            }
         }
-        pluginManager.stopPlugins();
-        pluginManager.unloadPlugins();
+        try {
+            pluginManager.stopPlugins();
+        } catch (Exception | LinkageError e) {
+            context.logger().error("Failed to stop extensions", e);
+        }
+        try {
+            pluginManager.unloadPlugins();
+        } catch (Exception | LinkageError e) {
+            context.logger().error("Failed to unload extensions", e);
+        }
     }
 
     @Override

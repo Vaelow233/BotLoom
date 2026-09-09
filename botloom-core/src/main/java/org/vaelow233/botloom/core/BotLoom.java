@@ -19,24 +19,26 @@ public interface BotLoom {
      */
     void setupConfigProvider();
     StorageProvider storageProvider();
-    void setStorageProvider(StorageProvider provider);
+    void setupStorageProvider();
     ExtensionProvider extensionProvider();
     void setExtensionProvider(ExtensionProvider provider);
     BotManager botManager();
     void setBotManager(BotManager manager);
     BotLoomContext context();
     void setContext(BotLoomContext context);
+    void preEnable();
     void postEnable();
+    void preDisable();
     void postDisable();
+    void disablePlugin();
 
     default void enable() {
         try {
+            preEnable();
             logger().info("Loading config...");
             setupConfigProvider();
             logger().info("Loading storage...");
-            StorageProvider storage = new DefaultStorageProvider(configProvider().config().storage);
-            setStorageProvider(storage);
-            storage.load();
+            setupStorageProvider();
             logger().info("Loading bots...");
             BotManager bot = new DefaultBotManager();
             setBotManager(bot);
@@ -50,24 +52,30 @@ public interface BotLoom {
                 public StorageProvider storage() {
                     return storageProvider();
                 }
+
+                @Override
+                public Logger logger() {
+                    return BotLoom.this.logger();
+                }
             });
             logger().info("Loading extensions...");
             ExtensionProvider extension = new DefaultExtensionProvider(configProvider().dataDirectory().resolve("extensions"));
             setExtensionProvider(extension);
             extension.load(context());
             postEnable();
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
             logger().error("Failed to enable plugin!", e);
-            disable();
+            disablePlugin();
         }
     }
 
     default void disable() {
+        preDisable();
         if (extensionProvider() != null) {
             try {
                 logger().info("Unloading extensions...");
-                extensionProvider().unload();
-            } catch (Exception e) {
+                extensionProvider().unload(context());
+            } catch (Exception | LinkageError e) {
                 logger().error("Failed to unload extensions!", e);
             }
         }
@@ -75,7 +83,7 @@ public interface BotLoom {
             try {
                 logger().info("Unloading bots...");
                 botManager().unload();
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 logger().error("Failed to unload bots!", e);
             }
         }
@@ -83,7 +91,7 @@ public interface BotLoom {
             try {
                 logger().info("Unloading storage...");
                 storageProvider().unload();
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 logger().error("Failed to unload storage!", e);
             }
         }

@@ -8,6 +8,6 @@ import java.util.Set;
 
 public interface ExtensionProvider {
     void load(BotLoomContext context) throws IOException;
-    void unload();
+    void unload(BotLoomContext context);
     Set<BotLoomExtension> extensions();
 }
