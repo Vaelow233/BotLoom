@@ -24,10 +24,10 @@ public class DefaultExtensionProvider implements ExtensionProvider {
         Files.createDirectories(extensionDirectory);
         pluginManager.loadPlugins();
         pluginManager.startPlugins();
-        extensions.addAll(pluginManager.getExtensions(BotLoomExtension.class));
-        for (BotLoomExtension extension : extensions) {
+        for (BotLoomExtension extension : pluginManager.getExtensions(BotLoomExtension.class)) {
             try {
                 extension.enable(context);
+                extensions.add(extension);
             } catch (Exception | LinkageError e) {
                 context.logger().error("Failed to enable extension", e);
                 try {

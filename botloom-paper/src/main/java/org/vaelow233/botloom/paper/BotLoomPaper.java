@@ -5,6 +5,7 @@ import org.bxteam.quark.paper.PaperLibraryManager;
 import org.slf4j.Logger;
 import org.vaelow233.botloom.core.BotLoom;
 import org.vaelow233.botloom.core.bot.BotManager;
+import org.vaelow233.botloom.core.command.RootCommandHandler;
 import org.vaelow233.botloom.core.config.ConfigProvider;
 import org.vaelow233.botloom.core.config.DefaultConfigProvider;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
@@ -18,6 +19,7 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     private PaperLibraryManager libraryManager;
     private ConfigProvider configProvider;
     private StorageProvider storageProvider;
+    private RootCommandHandler commandHandler;
     private ExtensionProvider extensionProvider;
     private BotManager botManager;
     private BotLoomContext context;
@@ -52,6 +54,16 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
         ExternalStorageHelper helper = new PaperStorageHelper(configProvider.config().storage, libraryManager);
         helper.load(logger());
         this.storageProvider = helper.provider();
+    }
+
+    @Override
+    public RootCommandHandler commandHandler() {
+        return commandHandler;
+    }
+
+    @Override
+    public void setCommandHandler(RootCommandHandler handler) {
+        this.commandHandler = handler;
     }
 
     @Override

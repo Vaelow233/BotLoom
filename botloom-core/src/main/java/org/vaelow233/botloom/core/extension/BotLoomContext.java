@@ -1,9 +1,12 @@
 package org.vaelow233.botloom.core.extension;
 
 import org.slf4j.Logger;
+import org.vaelow233.botloom.core.command.LoomCommand;
 import org.vaelow233.botloom.core.storage.StorageProvider;
 
 public interface BotLoomContext {
     StorageProvider storage();
     Logger logger();
+    boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj);
+    void unregisterCommand(BotLoomExtension extension, String command);
 }

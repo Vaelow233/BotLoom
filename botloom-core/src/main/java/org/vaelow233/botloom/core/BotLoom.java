@@ -1,14 +1,22 @@
 package org.vaelow233.botloom.core;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaelow233.botloom.core.adapter.BotLoomSender;
 import org.vaelow233.botloom.core.bot.BotManager;
 import org.vaelow233.botloom.core.bot.DefaultBotManager;
+import org.vaelow233.botloom.core.command.LoomCommand;
+import org.vaelow233.botloom.core.command.RootCommandHandler;
+import org.vaelow233.botloom.core.command.DefaultRootCommandHandler;
 import org.vaelow233.botloom.core.config.ConfigProvider;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
+import org.vaelow233.botloom.core.extension.BotLoomExtension;
 import org.vaelow233.botloom.core.extension.DefaultExtensionProvider;
 import org.vaelow233.botloom.core.extension.ExtensionProvider;
-import org.vaelow233.botloom.core.storage.DefaultStorageProvider;
 import org.vaelow233.botloom.core.storage.StorageProvider;
+
+import java.util.List;
+import java.util.function.BiFunction;
 
 public interface BotLoom {
     Logger logger();
@@ -20,6 +28,8 @@ public interface BotLoom {
     void setupConfigProvider();
     StorageProvider storageProvider();
     void setupStorageProvider();
+    RootCommandHandler commandHandler();
+    void setCommandHandler(RootCommandHandler handler);
     ExtensionProvider extensionProvider();
     void setExtensionProvider(ExtensionProvider provider);
     BotManager botManager();
@@ -39,6 +49,9 @@ public interface BotLoom {
             setupConfigProvider();
             logger().info("Loading storage...");
             setupStorageProvider();
+            logger().info("Loading commands...");
+            RootCommandHandler commandHandler = new DefaultRootCommandHandler(logger());
+            setCommandHandler(commandHandler);
             logger().info("Loading bots...");
             BotManager bot = new DefaultBotManager();
             setBotManager(bot);
@@ -56,6 +69,16 @@ public interface BotLoom {
                 @Override
                 public Logger logger() {
                     return BotLoom.this.logger();
+                }
+
+                @Override
+                public boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj) {
+                    return commandHandler().addCommand(extension, command, commandObj);
+                }
+
+                @Override
+                public void unregisterCommand(BotLoomExtension extension, String command) {
+                    commandHandler().unregisterCommand(extension, command);
                 }
             });
             logger().info("Loading extensions...");

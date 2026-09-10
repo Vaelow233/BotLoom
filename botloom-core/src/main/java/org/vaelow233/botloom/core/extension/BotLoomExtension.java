@@ -10,4 +10,7 @@ public interface BotLoomExtension extends ExtensionPoint {
     default void disable() {
 
     }
+
+    String name();
+    String version();
 }
