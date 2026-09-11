@@ -1,11 +1,15 @@
 package org.vaelow233.botloom.paper.game;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.vaelow233.botloom.core.BotLoom;
+import org.vaelow233.botloom.paper.game.event.PaperChatEvent;
 import org.vaelow233.botloom.paper.game.event.PaperJoinEvent;
 import org.vaelow233.botloom.paper.game.event.PaperLoginEvent;
 import org.vaelow233.botloom.paper.game.event.PaperQuitEvent;
@@ -30,5 +34,10 @@ public class PaperEventListener implements Listener {
     @EventHandler
     public void onLogin(PlayerLoginEvent event) {
         plugin.gameEventBus().fireEvent(new PaperLoginEvent(event));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onChat(PlayerChatEvent event) {
+        plugin.gameEventBus().fireEvent(new PaperChatEvent(event));
     }
 }

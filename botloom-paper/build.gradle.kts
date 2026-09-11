@@ -43,7 +43,6 @@ publishing {
 
 tasks.shadowJar {
     relocate("org.bxteam", "org.vaelow233.botloom.libs.bxteam")
-    relocate("com.fasterxml", "org.vaelow233.botloom.libs.fasterxml")
     relocate("org.yaml", "org.vaelow233.botloom.libs.yaml")
     relocate("org.java_websocket", "org.vaelow233.botloom.libs.java_websocket")
     relocate("com.github.zafarkhaja", "org.vaelow233.botloom.libs.github.zafarkhaja")

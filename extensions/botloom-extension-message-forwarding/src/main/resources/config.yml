@@ -1,0 +1,33 @@
+# Configure the messages that bound to server (from bot)
+serverbound:
+  # The messages that from group
+  group:
+    enable: true
+    content: "[Group %group_id%] %sender_id%: %message%"
+    limit:
+      # The groups that its messages will forward to the server
+      # Inside should be a string group id
+      source: []
+      length: 200
+      # If the message reaches the length limit, what should the subsequent parts will be replaced to
+      replacement: "..."
+  # The messages that is direct message
+  direct:
+    enable: false
+    content: "%sender_id%: %message%"
+    limit:
+      # The users that its messages will forward to the server
+      # Inside should be a string user id
+      source: []
+      length: 200
+      replacement: "..."
+
+# Configure the messages that bound to bot (from server)
+botbound:
+  enable: true
+  content: "[Server] <%player%>: %message%"
+  # The groups that the messages from game will be forwarded to
+  destination: []
+  limit:
+    length: 200
+    replacement: "..."
