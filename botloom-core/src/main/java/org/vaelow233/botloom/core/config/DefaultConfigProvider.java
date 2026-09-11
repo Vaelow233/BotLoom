@@ -11,6 +11,7 @@ import java.nio.file.Path;
 public class DefaultConfigProvider implements ConfigProvider {
     private final Path dataDirectory;
     private BotLoomConfig config;
+    private BotLoomMessageConfig message;
 
     public DefaultConfigProvider(Path dataDirectory) {
         this.dataDirectory = dataDirectory;
@@ -28,15 +29,33 @@ public class DefaultConfigProvider implements ConfigProvider {
                 Files.copy(input, configFile);
             }
         }
+        Path messageConfigFile = dataDirectory.resolve("messages.yml");
+        if (Files.notExists(messageConfigFile)) {
+            try (InputStream input = DefaultConfigProvider.class.getResourceAsStream("/messages.yml")) {
+                if (input == null) {
+                    throw new FileNotFoundException("Bundled messages.yml was not found");
+                }
+                Files.copy(input, messageConfigFile);
+            }
+        }
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
             this.config = mapper.readValue(reader, BotLoomConfig.class);
+        }
+        ObjectMapper messageMapper = new ObjectMapper(new YAMLFactory());
+        try (Reader reader = Files.newBufferedReader(messageConfigFile, StandardCharsets.UTF_8)) {
+            this.message = messageMapper.readValue(reader, BotLoomMessageConfig.class);
         }
     }
 
     @Override
     public BotLoomConfig config() {
         return config;
+    }
+
+    @Override
+    public BotLoomMessageConfig message() {
+        return message;
     }
 
     @Override

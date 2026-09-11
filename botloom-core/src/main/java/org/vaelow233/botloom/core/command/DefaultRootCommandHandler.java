@@ -1,39 +1,47 @@
 package org.vaelow233.botloom.core.command;
 
-import org.slf4j.Logger;
+import org.vaelow233.botloom.core.BotLoom;
 import org.vaelow233.botloom.core.adapter.BotLoomSender;
+import org.vaelow233.botloom.core.command.handler.HelpCommandHandler;
+import org.vaelow233.botloom.core.command.handler.ReloadCommandHandler;
+import org.vaelow233.botloom.core.command.handler.StatusCommandHandler;
+import org.vaelow233.botloom.core.command.handler.VersionCommandHandler;
+import org.vaelow233.botloom.core.config.BotLoomMessageConfig;
 import org.vaelow233.botloom.core.extension.BotLoomExtension;
 
 import java.util.*;
 
+import static org.vaelow233.botloom.core.config.BotLoomMessageConfig.*;
+
 public class DefaultRootCommandHandler implements RootCommandHandler {
     private final Map<String, LoomCommand> commands = new HashMap<>();
     private final Map<String, BotLoomExtension> extensionMap = new HashMap<>();
-    private final Logger logger;
+    private final BotLoom plugin;
     private static final Set<String> internalCommands = new HashSet<>(Arrays.asList("help", "reload", "status", "version"));
 
-    public DefaultRootCommandHandler(Logger logger) {
-        this.logger = logger;
+    public DefaultRootCommandHandler(BotLoom plugin) {
+        this.plugin = plugin;
     }
 
     @Override
     public void onCommand(BotLoomSender sender, String[] args) {
+        BotLoomMessageConfig message = plugin.configProvider().message();
         if (args.length == 0) {
-            // TODO: show the help message
+            HelpCommandHandler.handle(plugin, sender);
             return;
         }
         switch (args[0]) {
             case "help":
-                // TODO: show the help message
+                HelpCommandHandler.handle(plugin, sender);
                 break;
             case "reload":
-                // TODO: reload the plugin
+                ReloadCommandHandler.handle(plugin, sender);
                 break;
             case "version":
-                // TODO: show the version of the plugin
+                VersionCommandHandler.handle(plugin, sender);
                 break;
             case "status":
-                // TODO: show the status of the plugin
+                StatusCommandHandler.handle(plugin, sender);
                 break;
             default:
                 if (commands.containsKey(args[0])) {
@@ -41,10 +49,10 @@ public class DefaultRootCommandHandler implements RootCommandHandler {
                         commands.get(args[0]).execute(sender, args);
                     } catch (Exception | LinkageError e) {
                         BotLoomExtension owner = extensionMap.get(args[0]);
-                        logger.error("Failed to execute command {} from extension {}", args[0], owner, e);
+                        plugin.logger().error("Failed to execute command {} from extension {}", args[0], owner, e);
                     }
                 } else {
-                    // TODO: show the error message of unknown command
+                    sender.sendMessage(format(message.prefix + message.unknownCommand));
                 }
         }
     }
@@ -84,7 +92,7 @@ public class DefaultRootCommandHandler implements RootCommandHandler {
                 }
             } catch (Exception | LinkageError error) {
                 BotLoomExtension owner = extensionMap.get(commandName);
-                logger.error("Failed to suggest arguments for command {} from extension {}", commandName, owner, error);
+                plugin.logger().error("Failed to suggest arguments for command {} from extension {}", commandName, owner, error);
             }
         }
         Collections.sort(suggestions);
@@ -94,15 +102,15 @@ public class DefaultRootCommandHandler implements RootCommandHandler {
     @Override
     public boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj) {
         if (extension == null) {
-            logger.warn("A 'null' extension cannot register a command handler");
+            plugin.logger().warn("A 'null' extension cannot register a command handler");
             return false;
         }
         if (internalCommands.contains(command)) {
-            logger.warn("The command {} is an internal command that cannot be registered by extension {}", command, extension.name());
+            plugin.logger().warn("The command {} is an internal command that cannot be registered by extension {}", command, extension.name());
             return false;
         }
         if (commands.containsKey(command) || (extensionMap.containsKey(command) && !extensionMap.get(command).equals(extension))) {
-            logger.warn("The command {} is already registered so it cannot be registered by extension {}", command, extension.name());
+            plugin.logger().warn("The command {} is already registered so it cannot be registered by extension {}", command, extension.name());
             return false;
         }
         commands.put(command, commandObj);
@@ -113,23 +121,35 @@ public class DefaultRootCommandHandler implements RootCommandHandler {
     @Override
     public void unregisterCommand(BotLoomExtension extension, String command) {
         if (extension == null) {
-            logger.warn("A 'null' extension cannot unregister a command handler");
+            plugin.logger().warn("A 'null' extension cannot unregister a command handler");
             return;
         }
         if (internalCommands.contains(command)) {
-            logger.warn("The command {} is an internal command that cannot be unregistered by extension {}", command, extension.name());
+            plugin.logger().warn("The command {} is an internal command that cannot be unregistered by extension {}", command, extension.name());
             return;
         }
         if (!extensionMap.containsKey(command)) {
-            logger.warn("The command {} is not exists so it cannot be unregistered by extension {}", command, extension.name());
+            plugin.logger().warn("The command {} is not exists so it cannot be unregistered by extension {}", command, extension.name());
             return;
         }
         if (!extensionMap.get(command).equals(extension)) {
-            logger.warn("The command {} is registered by extension {} so it cannot be unregistered by {}",
+            plugin.logger().warn("The command {} is registered by extension {} so it cannot be unregistered by {}",
                     command, extensionMap.get(command).name(), extension.name());
             return;
         }
         commands.remove(command);
         extensionMap.remove(command);
+    }
+
+    @Override
+    public void unregisterAll(BotLoomExtension extension) {
+        Iterator<Map.Entry<String, BotLoomExtension>> iterator = extensionMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, BotLoomExtension> entry = iterator.next();
+            if (entry.getValue() == extension) {
+                commands.remove(entry.getKey());
+                iterator.remove();
+            }
+        }
     }
 }

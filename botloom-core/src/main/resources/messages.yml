@@ -1,0 +1,17 @@
+prefix: "&6[BotLoom] &r"
+help:
+  - "&bBotLoom Help"
+  - "&a/botloom help   &e- Show the help messages"
+admin-help:
+  - "&bBotLoom Help"
+  - "&a/botloom help   &e- Show the help messages"
+  - "&a/botloom reload   &e- Reload BotLoom"
+  - "&a/botloom version   &e- Check the version of BotLoom"
+success: "&aOperation successfully!"
+reloading: "&aReloading BotLoom ..."
+reloaded: "&aBotLoom has been reloaded"
+reload-failed: "&cFailed to reload plugins! Please check the console for more details!"
+unknown-command: "&cUnknown command!"
+no-permission: "&cYou don't have permission to do this!"
+version: "&aBotLoom v%version% is currently running under %platform%"
+status: "&cThis feature is not supported yet!"

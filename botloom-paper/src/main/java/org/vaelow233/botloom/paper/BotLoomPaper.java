@@ -1,18 +1,24 @@
 package org.vaelow233.botloom.paper;
 
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bxteam.quark.paper.PaperLibraryManager;
 import org.slf4j.Logger;
 import org.vaelow233.botloom.core.BotLoom;
 import org.vaelow233.botloom.core.bot.BotManager;
 import org.vaelow233.botloom.core.command.RootCommandHandler;
+import org.vaelow233.botloom.core.config.BotLoomConfig;
 import org.vaelow233.botloom.core.config.ConfigProvider;
 import org.vaelow233.botloom.core.config.DefaultConfigProvider;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
 import org.vaelow233.botloom.core.extension.ExtensionProvider;
 import org.vaelow233.botloom.core.storage.ExternalStorageHelper;
 import org.vaelow233.botloom.core.storage.StorageProvider;
+import org.vaelow233.botloom.paper.command.PaperCommand;
 import org.vaelow233.botloom.paper.storage.PaperStorageHelper;
+
+import java.io.IOException;
 
 public class BotLoomPaper extends JavaPlugin implements BotLoom {
 
@@ -23,6 +29,7 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     private ExtensionProvider extensionProvider;
     private BotManager botManager;
     private BotLoomContext context;
+    private PaperCommand paperCommand;
 
     @Override
     public Logger logger() {
@@ -35,25 +42,37 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     }
 
     @Override
-    public void setupConfigProvider() {
-        try {
-            this.configProvider = new DefaultConfigProvider(getDataFolder().toPath());
-            this.configProvider.load();
-        } catch (Exception e) {
-            logger().error("Failed to load config", e);
+    public void setConfigProvider(ConfigProvider configProvider) {
+        this.configProvider = configProvider;
+    }
+
+    @Override
+    public ConfigProvider prepareConfigProvider() throws IOException {
+        ConfigProvider provider = new DefaultConfigProvider(getDataFolder().toPath());
+        provider.load();
+        if (provider.config() == null || provider.message() == null) {
+            throw new IllegalArgumentException(
+                    "config.yml and messages.yml must not be null"
+            );
         }
+        return provider;
+    }
+
+    @Override
+    public StorageProvider prepareStorageProvider(BotLoomConfig.StorageConfig config) {
+        ExternalStorageHelper helper = new PaperStorageHelper(config, libraryManager);
+        helper.load(logger());
+        return helper.provider();
+    }
+
+    @Override
+    public void setStorageProvider(StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
     }
 
     @Override
     public StorageProvider storageProvider() {
         return storageProvider;
-    }
-
-    @Override
-    public void setupStorageProvider() {
-        ExternalStorageHelper helper = new PaperStorageHelper(configProvider.config().storage, libraryManager);
-        helper.load(logger());
-        this.storageProvider = helper.provider();
     }
 
     @Override
@@ -109,12 +128,24 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
 
     @Override
     public void postEnable() {
-
+        paperCommand = new PaperCommand(this);
+        boolean primaryNameRegistered = getServer()
+                .getCommandMap()
+                .register("botloom", paperCommand);
+        if (!primaryNameRegistered) {
+            logger().warn("/botloom is occupied; use /botloom:botloom instead");
+        }
     }
 
     @Override
     public void postDisable() {
-
+        if (paperCommand == null) {
+            return;
+        }
+        CommandMap map = getServer().getCommandMap();
+        map.getKnownCommands().values().removeIf(command -> command == paperCommand);
+        paperCommand.unregister(map);
+        paperCommand = null;
     }
 
     @Override
@@ -130,5 +161,10 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     @Override
     public void onDisable() {
         this.disable();
+    }
+
+    @Override
+    public String platform() {
+        return Bukkit.getServer().getName();
     }
 }

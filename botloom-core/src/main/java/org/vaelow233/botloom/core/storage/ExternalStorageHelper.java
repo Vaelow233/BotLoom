@@ -2,6 +2,7 @@ package org.vaelow233.botloom.core.storage;
 
 import org.slf4j.Logger;
 import org.vaelow233.botloom.core.config.BotLoomConfig;
+import org.vaelow233.botloom.core.exception.ExceptionHandler;
 import org.vaelow233.botloom.core.storage.database.*;
 
 public abstract class ExternalStorageHelper {

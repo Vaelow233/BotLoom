@@ -1,31 +1,36 @@
 package org.vaelow233.botloom.paper.command;
 
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.PluginIdentifiableCommand;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.vaelow233.botloom.core.command.RootCommandHandler;
+import org.vaelow233.botloom.paper.BotLoomPaper;
 import org.vaelow233.botloom.paper.adapter.PaperSender;
 
 import java.util.List;
 
-public class PaperCommand implements CommandExecutor, TabCompleter {
-    private final RootCommandHandler commandHandler;
+public class PaperCommand extends Command implements PluginIdentifiableCommand {
+    private final BotLoomPaper plugin;
 
-    public PaperCommand(RootCommandHandler commandHandler) {
-        this.commandHandler = commandHandler;
+    public PaperCommand(BotLoomPaper plugin) {
+        super("botloom");
+        this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        commandHandler.onCommand(new PaperSender(sender), args);
+    public @NotNull Plugin getPlugin() {
+        return plugin;
+    }
+
+    @Override
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+        plugin.commandHandler().onCommand(new PaperSender(sender), args);
         return false;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return commandHandler.suggest(new PaperSender(sender), args);
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+        return plugin.commandHandler().suggest(new PaperSender(sender), args);
     }
 }

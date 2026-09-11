@@ -2,7 +2,9 @@ package org.vaelow233.botloom.core.extension;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
+import org.slf4j.event.Level;
 import org.vaelow233.botloom.core.BotLoom;
+import org.vaelow233.botloom.core.exception.ExceptionHandler;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,43 +22,43 @@ public class DefaultExtensionProvider implements ExtensionProvider {
     }
 
     @Override
-    public void load(BotLoomContext context) throws IOException {
+    public void load(BotLoomContext context, ExceptionHandler handler) throws IOException {
         Files.createDirectories(extensionDirectory);
         pluginManager.loadPlugins();
         pluginManager.startPlugins();
         for (BotLoomExtension extension : pluginManager.getExtensions(BotLoomExtension.class)) {
-            try {
+            handler.attempt(() -> {
                 extension.enable(context);
                 extensions.add(extension);
-            } catch (Exception | LinkageError e) {
+            }, (e) -> {
                 context.logger().error("Failed to enable extension", e);
-                try {
-                    extension.disable();
-                } catch (Exception | LinkageError e2) {
-                    context.logger().error("Failed to disable extension", e2);
-                }
-            }
+                handler.attempt(extension::disable, Level.ERROR, "Failed to disable extension");
+                context.unregisterAll(extension);
+            });
         }
     }
 
     @Override
-    public void unload(BotLoomContext context) {
-        for (BotLoomExtension extension : extensions) {
+    public void unload(BotLoomContext context, ExceptionHandler handler) {
+        boolean allDisabled = true;
+        Iterator<BotLoomExtension> iterator = extensions.iterator();
+        while (iterator.hasNext()) {
+            BotLoomExtension extension = iterator.next();
             try {
-                extension.disable();
-            } catch (Exception | LinkageError e) {
-                context.logger().error("Failed to disable extension", e);
+                if (handler.attempt(extension::disable, Level.ERROR, "Failed to disable extension")) {
+                    iterator.remove();
+                } else {
+                    allDisabled = false;
+                }
+            } finally {
+                context.unregisterAll(extension);
             }
         }
-        try {
-            pluginManager.stopPlugins();
-        } catch (Exception | LinkageError e) {
-            context.logger().error("Failed to stop extensions", e);
+        if (!allDisabled) {
+            return;
         }
-        try {
-            pluginManager.unloadPlugins();
-        } catch (Exception | LinkageError e) {
-            context.logger().error("Failed to unload extensions", e);
+        if (handler.attempt(pluginManager::stopPlugins, Level.ERROR, "Failed to stop extensions")) {
+            handler.attempt(pluginManager::unloadPlugins, Level.ERROR, "Failed to unload extensions");
         }
     }
 

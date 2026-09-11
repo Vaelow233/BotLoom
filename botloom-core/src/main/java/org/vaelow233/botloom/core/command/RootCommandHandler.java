@@ -10,4 +10,5 @@ public interface RootCommandHandler {
     List<String> suggest(BotLoomSender sender, String[] args);
     boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj);
     void unregisterCommand(BotLoomExtension extension, String command);
+    void unregisterAll(BotLoomExtension extension);
 }

@@ -9,4 +9,5 @@ public interface BotLoomContext {
     Logger logger();
     boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj);
     void unregisterCommand(BotLoomExtension extension, String command);
+    void unregisterAll(BotLoomExtension extension);
 }
