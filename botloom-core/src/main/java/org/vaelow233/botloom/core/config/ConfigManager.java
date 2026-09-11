@@ -9,19 +9,21 @@ import java.util.Set;
 public class ConfigManager {
     private final Map<String, ConfigProvider<?>> configProviderMap = new HashMap<>();
 
-    public <T> void load(String configName, ConfigProvider<T> configProvider) throws IOException {
+    public <T> ConfigProvider<T> load(String configName, ConfigProvider<T> configProvider) throws IOException {
         if (configProviderMap.containsKey(configName)) {
             throw new IllegalArgumentException(configName + " already exists");
         }
         configProvider.load();
         put(configName, configProvider);
+        return configProvider;
     }
 
-    public <T> void put(String configName, ConfigProvider<T> configProvider) {
+    public <T> ConfigProvider<T> put(String configName, ConfigProvider<T> configProvider) {
         if (configProviderMap.containsKey(configName)) {
             throw new IllegalArgumentException(configName + " already exists");
         }
         configProviderMap.put(configName, configProvider);
+        return configProvider;
     }
 
     public <T> ConfigProvider<T> get(String name, Class<T> clazz) {

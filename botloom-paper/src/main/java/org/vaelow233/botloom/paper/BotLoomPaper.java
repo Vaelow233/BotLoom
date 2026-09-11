@@ -11,9 +11,13 @@ import org.vaelow233.botloom.core.command.RootCommandHandler;
 import org.vaelow233.botloom.core.config.*;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
 import org.vaelow233.botloom.core.extension.ExtensionProvider;
+import org.vaelow233.botloom.core.game.GameEventBus;
+import org.vaelow233.botloom.core.game.GameHandler;
 import org.vaelow233.botloom.core.storage.ExternalStorageHelper;
 import org.vaelow233.botloom.core.storage.StorageProvider;
 import org.vaelow233.botloom.paper.command.PaperCommand;
+import org.vaelow233.botloom.paper.game.PaperEventListener;
+import org.vaelow233.botloom.paper.game.PaperGameHandler;
 import org.vaelow233.botloom.paper.storage.PaperStorageHelper;
 
 import java.io.IOException;
@@ -29,6 +33,8 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     private BotManager botManager;
     private BotLoomContext context;
     private PaperCommand paperCommand;
+    private GameHandler gameHandler;
+    private GameEventBus gameEventBus;
 
     @Override
     public Logger logger() {
@@ -129,6 +135,31 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     }
 
     @Override
+    public GameHandler gameHandler() {
+        return gameHandler;
+    }
+
+    @Override
+    public void setGameHandler(GameHandler gameHandler) {
+        this.gameHandler = gameHandler;
+    }
+
+    @Override
+    public GameHandler prepareGameHandler() {
+        return new PaperGameHandler(this);
+    }
+
+    @Override
+    public GameEventBus gameEventBus() {
+        return gameEventBus;
+    }
+
+    @Override
+    public void setGameEventBus(GameEventBus gameEventBus) {
+        this.gameEventBus = gameEventBus;
+    }
+
+    @Override
     public void preEnable() {
         this.libraryManager = new PaperLibraryManager(this);
         libraryManager.addGoogleMavenCentralMirror();
@@ -148,6 +179,7 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
         if (!primaryNameRegistered) {
             logger().warn("/botloom is occupied; use /botloom:botloom instead");
         }
+        getServer().getPluginManager().registerEvents(new PaperEventListener(this), this);
     }
 
     @Override

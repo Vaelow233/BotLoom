@@ -25,4 +25,13 @@ public class PaperPlayer extends BotLoomPlayer {
     public void kick(String reason) {
         player.kickPlayer(reason);
     }
+
+    @Override
+    public boolean isOnline() {
+        return player.isOnline();
+    }
+
+    public Player player() {
+        return player;
+    }
 }

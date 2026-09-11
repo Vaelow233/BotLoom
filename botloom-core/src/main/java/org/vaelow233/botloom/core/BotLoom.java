@@ -2,6 +2,8 @@ package org.vaelow233.botloom.core;
 
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
+import org.vaelow233.botloom.core.adapter.BotLoomOfflinePlayer;
+import org.vaelow233.botloom.core.adapter.BotLoomPlayer;
 import org.vaelow233.botloom.core.bot.BotManager;
 import org.vaelow233.botloom.core.bot.DefaultBotManager;
 import org.vaelow233.botloom.core.command.LoomCommand;
@@ -12,14 +14,20 @@ import org.vaelow233.botloom.core.config.BotLoomMessageConfig;
 import org.vaelow233.botloom.core.config.ConfigManager;
 import org.vaelow233.botloom.core.config.ConfigProvider;
 import org.vaelow233.botloom.core.exception.ExceptionHandler;
-import org.vaelow233.botloom.core.extension.BotLoomContext;
-import org.vaelow233.botloom.core.extension.BotLoomExtension;
-import org.vaelow233.botloom.core.extension.DefaultExtensionProvider;
-import org.vaelow233.botloom.core.extension.ExtensionProvider;
+import org.vaelow233.botloom.core.extension.*;
+import org.vaelow233.botloom.core.game.GameEventBus;
+import org.vaelow233.botloom.core.game.GameHandler;
+import org.vaelow233.botloom.core.game.event.GameEvent;
 import org.vaelow233.botloom.core.storage.StorageProvider;
+import org.vaelow233.botweave.core.BotWeave;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface BotLoom {
     Logger logger();
@@ -39,6 +47,11 @@ public interface BotLoom {
     void setBotManager(BotManager manager);
     BotLoomContext context();
     void setContext(BotLoomContext context);
+    GameHandler gameHandler();
+    void setGameHandler(GameHandler gameHandler);
+    GameHandler prepareGameHandler();
+    GameEventBus gameEventBus();
+    void setGameEventBus(GameEventBus gameEventBus);
     void preEnable();
     void postEnable();
     void preDisable();
@@ -73,6 +86,20 @@ public interface BotLoom {
         if (abortOnErrors(handler)) {
             return;
         }
+        logger().info("Loading game handlers...");
+        handler.attempt(() -> {
+            GameHandler gameHandler = prepareGameHandler();
+            if (gameHandler == null) {
+                throw new IllegalArgumentException("Game handler is null!");
+            }
+            setGameHandler(gameHandler);
+        });
+        if (abortOnErrors(handler)) {
+            return;
+        }
+        logger().info("Loading game event bus...");
+        GameEventBus eventBus = new GameEventBus(logger());
+        setGameEventBus(eventBus);
         logger().info("Loading bots...");
         handler.attempt(() -> {
             BotManager bot = new DefaultBotManager();
@@ -103,15 +130,18 @@ public interface BotLoom {
     default ExceptionHandler reload() {
         ExceptionHandler handler = new ExceptionHandler(logger());
         ConfigManager nextManager = new ConfigManager();
+        GameEventBus eventBus = new GameEventBus(logger());
         ConfigProvider<BotLoomConfig> nextConfig;
         ConfigProvider<BotLoomMessageConfig> nextMessage;
         StorageProvider nextStorage;
+        GameHandler gameHandler;
         try {
             nextConfig = prepareConfigProvider();
             nextMessage = prepareMessageConfigProvider();
             nextManager.put("config.yml", nextConfig);
             nextManager.put("messages.yml", nextMessage);
             nextStorage = prepareStorageProvider(nextConfig.config().storage);
+            gameHandler = prepareGameHandler();
         } catch (IOException | RuntimeException | LinkageError error) {
             handler.record(error, Level.ERROR, "Failed to prepare reload!");
             return handler;
@@ -140,6 +170,8 @@ public interface BotLoom {
         }
         setConfigManager(nextManager);
         setStorageProvider(nextStorage);
+        setGameEventBus(eventBus);
+        setGameHandler(gameHandler);
         handler.attempt(() -> {
             BotManager bot = new DefaultBotManager();
             setBotManager(bot);
@@ -208,36 +240,6 @@ public interface BotLoom {
     }
 
     default BotLoomContext newContext() {
-        return new BotLoomContext() {
-            @Override
-            public StorageProvider storage() {
-                return storageProvider();
-            }
-
-            @Override
-            public Logger logger() {
-                return BotLoom.this.logger();
-            }
-
-            @Override
-            public boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj) {
-                return commandHandler().addCommand(extension, command, commandObj);
-            }
-
-            @Override
-            public void unregisterCommand(BotLoomExtension extension, String command) {
-                commandHandler().unregisterCommand(extension, command);
-            }
-
-            @Override
-            public void unregisterAll(BotLoomExtension extension) {
-                commandHandler().unregisterAll(extension);
-            }
-
-            @Override
-            public <T> void registerConfig(String configName, ConfigProvider<T> configProvider) throws IOException {
-                configManager().load(configName, configProvider);
-            }
-        };
+        return new DefaultBotLoomContext(this);
     }
 }
