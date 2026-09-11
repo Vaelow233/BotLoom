@@ -8,58 +8,53 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class DefaultConfigProvider implements ConfigProvider {
-    private final Path dataDirectory;
-    private BotLoomConfig config;
-    private BotLoomMessageConfig message;
+public class DefaultConfigProvider<T> implements ConfigProvider<T> {
+    private final Path configFile;
+    private final Class<T> configClass;
+    private final Class<?> resourceOwner;
+    private T config;
 
-    public DefaultConfigProvider(Path dataDirectory) {
-        this.dataDirectory = dataDirectory;
+    public DefaultConfigProvider(Path configFile, Class<T> configClass) {
+        this.configFile = configFile;
+        this.configClass = configClass;
+        this.resourceOwner = configClass;
+    }
+
+    public DefaultConfigProvider(
+            Path file, Class<T> configClass, Class<?> resourceOwner) {
+        this.configFile = file;
+        this.configClass = configClass;
+        this.resourceOwner = resourceOwner;
     }
 
     @Override
     public void load() throws IOException {
-        Files.createDirectories(dataDirectory);
-        Path configFile = dataDirectory.resolve("config.yml");
+        Files.createDirectories(configFile.toAbsolutePath().getParent());
         if (Files.notExists(configFile)) {
-            try (InputStream input = DefaultConfigProvider.class.getResourceAsStream("/config.yml")) {
+            try (InputStream input = resourceOwner.getResourceAsStream("/" + configFile.getFileName().toString())) {
                 if (input == null) {
-                    throw new FileNotFoundException("Bundled config.yml was not found");
+                    throw new FileNotFoundException("Bundled " + configFile.getFileName().toString() + " was not found");
                 }
                 Files.copy(input, configFile);
             }
         }
-        Path messageConfigFile = dataDirectory.resolve("messages.yml");
-        if (Files.notExists(messageConfigFile)) {
-            try (InputStream input = DefaultConfigProvider.class.getResourceAsStream("/messages.yml")) {
-                if (input == null) {
-                    throw new FileNotFoundException("Bundled messages.yml was not found");
-                }
-                Files.copy(input, messageConfigFile);
-            }
-        }
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
-            this.config = mapper.readValue(reader, BotLoomConfig.class);
-        }
-        ObjectMapper messageMapper = new ObjectMapper(new YAMLFactory());
-        try (Reader reader = Files.newBufferedReader(messageConfigFile, StandardCharsets.UTF_8)) {
-            this.message = messageMapper.readValue(reader, BotLoomMessageConfig.class);
+            T loaded = mapper.readValue(reader, configClass);
+            if (loaded == null) {
+                throw new IOException("Config must not be null: " + configFile);
+            }
+            this.config = loaded;
         }
     }
 
     @Override
-    public BotLoomConfig config() {
+    public T config() {
         return config;
     }
 
     @Override
-    public BotLoomMessageConfig message() {
-        return message;
-    }
-
-    @Override
-    public Path dataDirectory() {
-        return dataDirectory;
+    public Class<T> configClass() {
+        return configClass;
     }
 }

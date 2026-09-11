@@ -8,9 +8,7 @@ import org.slf4j.Logger;
 import org.vaelow233.botloom.core.BotLoom;
 import org.vaelow233.botloom.core.bot.BotManager;
 import org.vaelow233.botloom.core.command.RootCommandHandler;
-import org.vaelow233.botloom.core.config.BotLoomConfig;
-import org.vaelow233.botloom.core.config.ConfigProvider;
-import org.vaelow233.botloom.core.config.DefaultConfigProvider;
+import org.vaelow233.botloom.core.config.*;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
 import org.vaelow233.botloom.core.extension.ExtensionProvider;
 import org.vaelow233.botloom.core.storage.ExternalStorageHelper;
@@ -19,11 +17,12 @@ import org.vaelow233.botloom.paper.command.PaperCommand;
 import org.vaelow233.botloom.paper.storage.PaperStorageHelper;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class BotLoomPaper extends JavaPlugin implements BotLoom {
 
     private PaperLibraryManager libraryManager;
-    private ConfigProvider configProvider;
+    private ConfigManager configManager;
     private StorageProvider storageProvider;
     private RootCommandHandler commandHandler;
     private ExtensionProvider extensionProvider;
@@ -37,23 +36,37 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
     }
 
     @Override
-    public ConfigProvider configProvider() {
-        return configProvider;
+    public Path dataDirectory() {
+        return getDataFolder().toPath();
     }
 
     @Override
-    public void setConfigProvider(ConfigProvider configProvider) {
-        this.configProvider = configProvider;
+    public ConfigManager configManager() {
+        return configManager;
     }
 
     @Override
-    public ConfigProvider prepareConfigProvider() throws IOException {
-        ConfigProvider provider = new DefaultConfigProvider(getDataFolder().toPath());
+    public void setConfigManager(ConfigManager configManager) {
+        this.configManager = configManager;
+    }
+
+    @Override
+    public ConfigProvider<BotLoomConfig> prepareConfigProvider() throws IOException {
+        ConfigProvider<BotLoomConfig> provider = new DefaultConfigProvider<>(dataDirectory().resolve("config.yml"), BotLoomConfig.class);
         provider.load();
-        if (provider.config() == null || provider.message() == null) {
-            throw new IllegalArgumentException(
-                    "config.yml and messages.yml must not be null"
-            );
+        if (provider.config() == null) {
+            throw new IllegalArgumentException("config.yml must not be null");
+        }
+        return provider;
+    }
+
+    @Override
+    public ConfigProvider<BotLoomMessageConfig> prepareMessageConfigProvider() throws IOException {
+        ConfigProvider<BotLoomMessageConfig> provider = new DefaultConfigProvider<>(
+                dataDirectory().resolve("messages.yml"), BotLoomMessageConfig.class);
+        provider.load();
+        if (provider.config() == null) {
+            throw new IllegalArgumentException("messages.yml must not be null");
         }
         return provider;
     }

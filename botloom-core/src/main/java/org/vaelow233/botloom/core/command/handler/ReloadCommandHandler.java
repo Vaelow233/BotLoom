@@ -13,7 +13,7 @@ public class ReloadCommandHandler {
     }
 
     public static void handle(BotLoom plugin, BotLoomSender sender) {
-        BotLoomMessageConfig message = plugin.configProvider().message();
+        BotLoomMessageConfig message = plugin.configManager().get("messages.yml", BotLoomMessageConfig.class).config();
         if (sender.hasPermission("botloom.admin")) {
             sender.sendMessage(format(message.prefix + message.reloading));
             ExceptionHandler handler = plugin.reload();

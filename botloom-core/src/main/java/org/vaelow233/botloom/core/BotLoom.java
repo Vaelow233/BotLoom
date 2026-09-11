@@ -8,6 +8,8 @@ import org.vaelow233.botloom.core.command.LoomCommand;
 import org.vaelow233.botloom.core.command.RootCommandHandler;
 import org.vaelow233.botloom.core.command.DefaultRootCommandHandler;
 import org.vaelow233.botloom.core.config.BotLoomConfig;
+import org.vaelow233.botloom.core.config.BotLoomMessageConfig;
+import org.vaelow233.botloom.core.config.ConfigManager;
 import org.vaelow233.botloom.core.config.ConfigProvider;
 import org.vaelow233.botloom.core.exception.ExceptionHandler;
 import org.vaelow233.botloom.core.extension.BotLoomContext;
@@ -17,12 +19,15 @@ import org.vaelow233.botloom.core.extension.ExtensionProvider;
 import org.vaelow233.botloom.core.storage.StorageProvider;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public interface BotLoom {
     Logger logger();
-    ConfigProvider prepareConfigProvider() throws IOException;
-    void setConfigProvider(ConfigProvider provider);
-    ConfigProvider configProvider();
+    Path dataDirectory();
+    ConfigProvider<BotLoomConfig> prepareConfigProvider() throws IOException;
+    ConfigProvider<BotLoomMessageConfig> prepareMessageConfigProvider() throws IOException;
+    ConfigManager configManager();
+    void setConfigManager(ConfigManager manager);
     StorageProvider prepareStorageProvider(BotLoomConfig.StorageConfig config);
     void setStorageProvider(StorageProvider provider);
     StorageProvider storageProvider();
@@ -52,6 +57,7 @@ public interface BotLoom {
             return;
         }
         logger().info("Loading config...");
+        setConfigManager(new ConfigManager());
         setupConfigProvider(handler);
         if (abortOnErrors(handler)) {
             return;
@@ -71,7 +77,7 @@ public interface BotLoom {
         handler.attempt(() -> {
             BotManager bot = new DefaultBotManager();
             setBotManager(bot);
-            bot.load(configProvider().config().bot).whenComplete((unused, error) -> {
+            bot.load(configManager().get("config.yml", BotLoomConfig.class).config().bot).whenComplete((unused, error) -> {
                 if (error != null) {
                     logger().error("Failed to connect to bots", error);
                 }
@@ -80,35 +86,10 @@ public interface BotLoom {
         if (abortOnErrors(handler)) {
             return;
         }
-        setContext(new BotLoomContext() {
-            @Override
-            public StorageProvider storage() {
-                return storageProvider();
-            }
-
-            @Override
-            public Logger logger() {
-                return BotLoom.this.logger();
-            }
-
-            @Override
-            public boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj) {
-                return commandHandler().addCommand(extension, command, commandObj);
-            }
-
-            @Override
-            public void unregisterCommand(BotLoomExtension extension, String command) {
-                commandHandler().unregisterCommand(extension, command);
-            }
-
-            @Override
-            public void unregisterAll(BotLoomExtension extension) {
-                commandHandler().unregisterAll(extension);
-            }
-        });
+        setContext(newContext());
         logger().info("Loading extensions...");
         handler.attempt(() -> {
-            ExtensionProvider extension = new DefaultExtensionProvider(configProvider().dataDirectory().resolve("extensions"));
+            ExtensionProvider extension = new DefaultExtensionProvider(dataDirectory().resolve("extensions"));
             setExtensionProvider(extension);
             try {
                 extension.load(context(), handler);
@@ -121,10 +102,15 @@ public interface BotLoom {
 
     default ExceptionHandler reload() {
         ExceptionHandler handler = new ExceptionHandler(logger());
-        ConfigProvider nextConfig;
+        ConfigManager nextManager = new ConfigManager();
+        ConfigProvider<BotLoomConfig> nextConfig;
+        ConfigProvider<BotLoomMessageConfig> nextMessage;
         StorageProvider nextStorage;
         try {
             nextConfig = prepareConfigProvider();
+            nextMessage = prepareMessageConfigProvider();
+            nextManager.put("config.yml", nextConfig);
+            nextManager.put("messages.yml", nextMessage);
             nextStorage = prepareStorageProvider(nextConfig.config().storage);
         } catch (IOException | RuntimeException | LinkageError error) {
             handler.record(error, Level.ERROR, "Failed to prepare reload!");
@@ -152,7 +138,7 @@ public interface BotLoom {
             handler.attempt(nextStorage::unload, Level.ERROR, "Failed to close unused storage!");
             return handler;
         }
-        setConfigProvider(nextConfig);
+        setConfigManager(nextManager);
         setStorageProvider(nextStorage);
         handler.attempt(() -> {
             BotManager bot = new DefaultBotManager();
@@ -166,7 +152,7 @@ public interface BotLoom {
         }, Level.ERROR, "Failed to initialize bots!");
         handler.attempt(() -> {
             ExtensionProvider extension = new DefaultExtensionProvider(
-                    nextConfig.dataDirectory().resolve("extensions")
+                    dataDirectory().resolve("extensions")
             );
             setExtensionProvider(extension);
             try {
@@ -196,7 +182,8 @@ public interface BotLoom {
     default void setupConfigProvider(ExceptionHandler handler) {
         handler.attempt(() -> {
             try {
-                setConfigProvider(prepareConfigProvider());
+                configManager().put("config.yml", prepareConfigProvider());
+                configManager().put("messages.yml", prepareMessageConfigProvider());
             } catch (IOException error) {
                 throw new RuntimeException(error);
             }
@@ -205,9 +192,8 @@ public interface BotLoom {
 
     default void setupStorageProvider(ExceptionHandler handler) {
         handler.attempt(
-                () -> setStorageProvider(
-                        prepareStorageProvider(configProvider().config().storage)
-                ),
+                () -> setStorageProvider(prepareStorageProvider(
+                        configManager().get("config.yml", BotLoomConfig.class).config().storage)),
                 Level.ERROR,
                 "Failed to setup storage!"
         );
@@ -219,5 +205,39 @@ public interface BotLoom {
         }
         disablePlugin();
         return true;
+    }
+
+    default BotLoomContext newContext() {
+        return new BotLoomContext() {
+            @Override
+            public StorageProvider storage() {
+                return storageProvider();
+            }
+
+            @Override
+            public Logger logger() {
+                return BotLoom.this.logger();
+            }
+
+            @Override
+            public boolean addCommand(BotLoomExtension extension, String command, LoomCommand commandObj) {
+                return commandHandler().addCommand(extension, command, commandObj);
+            }
+
+            @Override
+            public void unregisterCommand(BotLoomExtension extension, String command) {
+                commandHandler().unregisterCommand(extension, command);
+            }
+
+            @Override
+            public void unregisterAll(BotLoomExtension extension) {
+                commandHandler().unregisterAll(extension);
+            }
+
+            @Override
+            public <T> void registerConfig(String configName, ConfigProvider<T> configProvider) throws IOException {
+                configManager().load(configName, configProvider);
+            }
+        };
     }
 }

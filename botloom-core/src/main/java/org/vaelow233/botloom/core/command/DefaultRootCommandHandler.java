@@ -25,7 +25,7 @@ public class DefaultRootCommandHandler implements RootCommandHandler {
 
     @Override
     public void onCommand(BotLoomSender sender, String[] args) {
-        BotLoomMessageConfig message = plugin.configProvider().message();
+        BotLoomMessageConfig message = plugin.configManager().get("messages.yml", BotLoomMessageConfig.class).config();
         if (args.length == 0) {
             HelpCommandHandler.handle(plugin, sender);
             return;
