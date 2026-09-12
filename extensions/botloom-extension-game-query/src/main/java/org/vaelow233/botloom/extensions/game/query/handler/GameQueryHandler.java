@@ -19,11 +19,18 @@ import java.util.Collections;
 
 public class GameQueryHandler {
     private final GameQueryExtension extension;
-    private final Spark spark;
 
     public GameQueryHandler(GameQueryExtension extension) {
         this.extension = extension;
-        this.spark = SparkProvider.get();
+    }
+
+    private Spark sparkOrNull() {
+        try {
+            return SparkProvider.get();
+        } catch (IllegalStateException e) {
+            extension.logger().warn("spark is not available yet");
+            return null;
+        }
     }
 
     public void handle(MessageReceivedEvent event) {
@@ -56,6 +63,10 @@ public class GameQueryHandler {
     }
 
     public void sendTPS(Bot bot, ConversationRef conversation) {
+        Spark spark = sparkOrNull();
+        if (spark == null) {
+            return;
+        }
         DoubleStatistic<StatisticWindow.TicksPerSecond> tps = spark.tps();
         double tpsLast5Secs = tps == null ? -1 : tps.poll(StatisticWindow.TicksPerSecond.SECONDS_5);
         double tpsLast10Secs = tps == null ? -1 : tps.poll(StatisticWindow.TicksPerSecond.SECONDS_10);
@@ -79,6 +90,10 @@ public class GameQueryHandler {
     }
 
     public void sendMSPT(Bot bot, ConversationRef conversation) {
+        Spark spark = sparkOrNull();
+        if (spark == null) {
+            return;
+        }
         GenericStatistic<DoubleAverageInfo, StatisticWindow.MillisPerTick> mspt = spark.mspt();
         DoubleAverageInfo msptLast10Secs = mspt == null ? null : mspt.poll(StatisticWindow.MillisPerTick.SECONDS_10);
         DoubleAverageInfo msptLastMin = mspt == null ? null : mspt.poll(StatisticWindow.MillisPerTick.MINUTES_1);
@@ -125,6 +140,10 @@ public class GameQueryHandler {
     }
 
     public void sendCPUUsage(Bot bot, ConversationRef conversation) {
+        Spark spark = sparkOrNull();
+        if (spark == null) {
+            return;
+        }
         DoubleStatistic<StatisticWindow.CpuUsage> cpuUsage = spark.cpuProcess();
         double usageLast10Secs = cpuUsage.poll(StatisticWindow.CpuUsage.SECONDS_10);
         double usageLastMin = cpuUsage.poll(StatisticWindow.CpuUsage.MINUTES_1);
