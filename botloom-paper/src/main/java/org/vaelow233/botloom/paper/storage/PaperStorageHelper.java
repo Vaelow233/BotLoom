@@ -5,12 +5,14 @@ import org.vaelow233.botloom.core.config.BotLoomConfig;
 import org.vaelow233.botloom.core.storage.ExternalStorageHelper;
 import org.vaelow233.botloom.core.storage.database.DatabaseType;
 
+import java.nio.file.Path;
+
 public class PaperStorageHelper extends ExternalStorageHelper {
 
     private final LibraryManager libraryManager;
 
-    public PaperStorageHelper(BotLoomConfig.StorageConfig config, LibraryManager libraryManager) {
-        super(config);
+    public PaperStorageHelper(BotLoomConfig.StorageConfig config, Path dataDirectory, LibraryManager libraryManager) {
+        super(config, dataDirectory);
         this.libraryManager = libraryManager;
     }
 

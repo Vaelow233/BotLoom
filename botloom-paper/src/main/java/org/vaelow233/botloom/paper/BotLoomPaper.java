@@ -80,7 +80,7 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
 
     @Override
     public StorageProvider prepareStorageProvider(BotLoomConfig.StorageConfig config) {
-        ExternalStorageHelper helper = new PaperStorageHelper(config, libraryManager);
+        ExternalStorageHelper helper = new PaperStorageHelper(config, dataDirectory(), libraryManager);
         helper.load(logger());
         return helper.provider();
     }

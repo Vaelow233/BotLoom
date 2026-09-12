@@ -5,20 +5,24 @@ import org.vaelow233.botloom.core.config.BotLoomConfig;
 import org.vaelow233.botloom.core.exception.ExceptionHandler;
 import org.vaelow233.botloom.core.storage.database.*;
 
+import java.nio.file.Path;
+
 public abstract class ExternalStorageHelper {
     private final BotLoomConfig.StorageConfig config;
+    private final Path dataDirectory;
     private DefaultStorageProvider provider;
 
     protected abstract void loadLibraries(DatabaseType type);
 
-    public ExternalStorageHelper(BotLoomConfig.StorageConfig config) {
+    public ExternalStorageHelper(BotLoomConfig.StorageConfig config, Path dataDirectory) {
         this.config = config;
+        this.dataDirectory = dataDirectory;
     }
 
     public void load(Logger logger) {
         try {
             loadLibraries(DatabaseType.fromString(config.type));
-            this.provider = new DefaultStorageProvider(config);
+            this.provider = new DefaultStorageProvider(config, dataDirectory);
             provider.load();
         } catch (Exception | LinkageError e) {
             logger.error("Error while loading storage provider", e);

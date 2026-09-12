@@ -7,12 +7,14 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.vaelow233.botloom.core.config.BotLoomConfig;
 import org.vaelow233.botloom.core.storage.database.*;
 
+import java.nio.file.Path;
+
 public class DefaultStorageProvider implements StorageProvider {
     private final BotLoomConfig.StorageConfig config;
     private final DatabaseProvider provider;
     private Jdbi jdbi;
 
-    public DefaultStorageProvider(BotLoomConfig.StorageConfig config) {
+    public DefaultStorageProvider(BotLoomConfig.StorageConfig config, Path dataDirectory) {
         this.config = config;
         switch (config.type.toLowerCase()) {
             case "mysql":
@@ -23,7 +25,7 @@ public class DefaultStorageProvider implements StorageProvider {
                 this.provider = new PostgreSQLProvider();
                 break;
             case "sqlite":
-                this.provider = new SQLiteProvider();
+                this.provider = new SQLiteProvider(dataDirectory);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown storage type: " + config.type);
