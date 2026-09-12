@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 public interface BotLoomContext {
@@ -35,4 +36,5 @@ public interface BotLoomContext {
     BotLoomOfflinePlayer offlinePlayer(String name);
     BotLoomOfflinePlayer offlinePlayer(UUID uuid);
     void runSync(Runnable runnable);
+    CompletionStage<Void> botsReady();
 }

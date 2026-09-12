@@ -9,4 +9,5 @@ public interface BotManager {
     CompletionStage<Void> load(BotLoomConfig.BotConfig config);
     void unload();
     BotWeave botWeave();
+    CompletionStage<Void> ready();
 }

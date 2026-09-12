@@ -1,0 +1,17 @@
+server-started:
+  enable: true
+  message: "[BotLoom] Minecraft server has started!"
+server-stopping:
+  enable: true
+  message: "[BotLoom] Minecraft server is stopping!"
+player-join:
+  enable: true
+  message: "[BotLoom] %player% joined the game!"
+player-quit:
+  enable: true
+  message: "[BotLoom] %player% left the game!"
+
+# Where the message should be sent to
+destination:
+  users: []
+  groups: []

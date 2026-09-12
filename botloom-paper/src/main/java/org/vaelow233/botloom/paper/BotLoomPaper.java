@@ -13,6 +13,7 @@ import org.vaelow233.botloom.core.extension.BotLoomContext;
 import org.vaelow233.botloom.core.extension.ExtensionProvider;
 import org.vaelow233.botloom.core.game.GameEventBus;
 import org.vaelow233.botloom.core.game.GameHandler;
+import org.vaelow233.botloom.core.game.event.ServerStoppingEvent;
 import org.vaelow233.botloom.core.storage.ExternalStorageHelper;
 import org.vaelow233.botloom.core.storage.StorageProvider;
 import org.vaelow233.botloom.paper.command.PaperCommand;
@@ -167,7 +168,9 @@ public class BotLoomPaper extends JavaPlugin implements BotLoom {
 
     @Override
     public void preDisable() {
-
+        if (getServer().isStopping() && gameEventBus() != null) {
+            gameEventBus().fireEvent(new ServerStoppingEvent());
+        }
     }
 
     @Override

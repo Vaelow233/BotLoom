@@ -13,9 +13,26 @@ import java.util.concurrent.*;
 public class DefaultBotManager implements BotManager {
     private final BotWeave botWeave = new BotWeave();
     private final Map<String, BotProvider> botProviderMap = new HashMap<>();
+    private final CompletableFuture<Void> ready = new CompletableFuture<>();
 
     @Override
     public CompletionStage<Void> load(BotLoomConfig.BotConfig config) {
+        try {
+            startBots(config).whenComplete((unused, error) -> {
+                if (error == null) {
+                    ready.complete(null);
+                } else {
+                    ready.completeExceptionally(error);
+                }
+            });
+        } catch (RuntimeException | LinkageError error) {
+            ready.completeExceptionally(error);
+            throw error;
+        }
+        return ready();
+    }
+
+    private CompletionStage<Void> startBots(BotLoomConfig.BotConfig config) {
         Map<String, BotProvider> prepared = new LinkedHashMap<>();
         for (String rawType : config.types) {
             String type = rawType.toLowerCase();
@@ -56,5 +73,10 @@ public class DefaultBotManager implements BotManager {
 
     public Map<String, BotProvider> botProviderMap() {
         return botProviderMap;
+    }
+
+    @Override
+    public CompletionStage<Void> ready() {
+        return ready.thenApply(unused -> null);
     }
 }

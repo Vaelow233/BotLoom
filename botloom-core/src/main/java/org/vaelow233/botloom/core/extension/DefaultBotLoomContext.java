@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 public class DefaultBotLoomContext implements BotLoomContext {
@@ -108,5 +109,10 @@ public class DefaultBotLoomContext implements BotLoomContext {
     @Override
     public void runSync(Runnable runnable) {
         plugin.gameHandler().runSync(runnable);
+    }
+
+    @Override
+    public CompletionStage<Void> botsReady() {
+        return plugin.botManager().ready();
     }
 }

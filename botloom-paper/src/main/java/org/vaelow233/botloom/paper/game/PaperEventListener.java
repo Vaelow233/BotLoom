@@ -8,7 +8,9 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.ServerLoadEvent;
 import org.vaelow233.botloom.core.BotLoom;
+import org.vaelow233.botloom.core.game.event.ServerStartedEvent;
 import org.vaelow233.botloom.paper.game.event.PaperChatEvent;
 import org.vaelow233.botloom.paper.game.event.PaperJoinEvent;
 import org.vaelow233.botloom.paper.game.event.PaperLoginEvent;
@@ -39,5 +41,12 @@ public class PaperEventListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChat(PlayerChatEvent event) {
         plugin.gameEventBus().fireEvent(new PaperChatEvent(event));
+    }
+
+    @EventHandler
+    public void onServerLoad(ServerLoadEvent event) {
+        if (event.getType() == ServerLoadEvent.LoadType.STARTUP) {
+            plugin.gameEventBus().fireEvent(new ServerStartedEvent());
+        }
     }
 }
