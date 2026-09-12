@@ -12,7 +12,7 @@ public class PaperSender extends BotLoomSender {
     private final CommandSender sender;
 
     public PaperSender(CommandSender sender) {
-        super(sender.getName(), UUID.randomUUID());
+        super(sender.getName(), sender instanceof Player ? ((Player) sender).getUniqueId() : new UUID(0L, 0L));
         this.sender = sender;
     }
 
