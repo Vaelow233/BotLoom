@@ -1,0 +1,17 @@
+tps:
+  enable: true
+  commands: ["/tps"]
+  message: "Server TPS: %tps_last_5_secs%, %tps_last_10_secs%, %tps_last_min%, %tps_last_5_mins%, %tps_last_15_mins%"
+mspt:
+  enable: true
+  commands: ["/mspt"]
+  message: "Server MSPT: %mspt_last_10_secs_med%, %mspt_last_min_med%, %mspt_last_5_mins_med%"
+cpu:
+  enable: true
+  commands: ["/cpu"]
+  message: "Server CPU Usage: %cpu_last_10_secs%, %cpu_last_min%, %cpu_last_15_mins%"
+
+# Where the message should be received
+source:
+  users: []
+  groups: []
