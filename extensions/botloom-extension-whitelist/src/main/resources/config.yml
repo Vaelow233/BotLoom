@@ -1,0 +1,44 @@
+enable: true
+# If enable this, players cannot login unless they bind their account with the bot
+need-bind-to-login: true
+# The number of accounts that a user can bind
+max-bind-count: 1
+# The method that used to bind the account, following options are available:
+# NAME: Bind with their name
+# VERIFY_CODE: When player login to the game, generate a code, use the code to verify and bind
+method: "NAME"
+# The verify code format (only available when using VERIFY_CODE method)
+code:
+  length: 6
+  # The code that generated will choose characters randomly from here
+  characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  # The code will expire at after this time (units: seconds)
+  expires-at: 300
+bypass:
+  # If enable this, specific players will be able to bypass bind / verification
+  enable: true
+  # If a player have this permission, they can bypass bind / verification
+  permission: "botloom.admin"
+  # If the player's name is in the following list, they can bypass bind / verification
+  names: []
+# Cooldown configuration. All the numbers unit is seconds (s)
+cooldown:
+  # Include both bind and verification
+  bind: 60
+  unbind: 86400 # 1 day
+prefixes:
+  # The prefix that is used to bind the account with name (only available when using NAME_BIND method)
+  # Usage: {prefix}{name}
+  bind: ["/bind ", "/绑定 "]
+  # The prefix that is used to unbind the account with name
+  # Usage: {prefix}{name}
+  unbind: ["/unbind ", "/解绑 "]
+  # The prefix that is used to verify the code and bind the account (only available when using VERIFY_CODE method)
+  # Usage: {prefix}{code}
+  verify: ["/verify ", "/验证 "]
+# The message source that is accepted
+sources:
+  # The DIRECT message from following user ids (string) will be accepted ("*" represents all users)
+  users: []
+  # The message from following group ids (string) will be accepted
+  groups: []

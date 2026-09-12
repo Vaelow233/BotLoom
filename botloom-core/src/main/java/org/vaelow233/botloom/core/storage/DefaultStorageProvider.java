@@ -1,13 +1,11 @@
 package org.vaelow233.botloom.core.storage;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.vaelow233.botloom.core.config.BotLoomConfig;
-import org.vaelow233.botloom.core.storage.database.DatabaseProvider;
-import org.vaelow233.botloom.core.storage.database.MySQLProvider;
-import org.vaelow233.botloom.core.storage.database.PostgreSQLProvider;
-import org.vaelow233.botloom.core.storage.database.SQLiteProvider;
+import org.vaelow233.botloom.core.storage.database.*;
 
 public class DefaultStorageProvider implements StorageProvider {
     private final BotLoomConfig.StorageConfig config;
@@ -53,5 +51,21 @@ public class DefaultStorageProvider implements StorageProvider {
 
     public Jdbi jdbi() {
         return jdbi;
+    }
+
+    @Override
+    public void migrate(String namespace, ClassLoader classLoader, String location) {
+        Flyway.configure(classLoader)
+                .dataSource(dataSource())
+                .locations(location)
+                .table("botloom_" + namespace + "_schema_history")
+                .baselineOnMigrate(true)
+                .baselineVersion("0")
+                .load()
+                .migrate();
+    }
+
+    public DatabaseType type() {
+        return provider.type();
     }
 }

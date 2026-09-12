@@ -1,0 +1,14 @@
+botbound:
+  bound-by-other: "This player name has been bound by others!"
+  reach-limit: "You have reached the limitation of bind counts: %limit%!"
+  on-cooldown: "You are currently on cooldown!"
+  operation-successful: "Operation successful!"
+  not-bound: "This player name was not bounded or not bounded by you!"
+  unknown-code: "Unknown verification code!"
+  shutting-down: "The extension is reloading, please try again later."
+
+serverbound:
+  unbind: "[BotLoom] Your account have not been bound yet! Please send /bind <player_name> to group to bind!"
+  unverify: "[BotLoom] Your account have not been verified yet! Please send /verify %code% to group to bind!"
+  error: "[BotLoom] There are some errors occurred when checking the whitelist, please contact the server administrator."
+  shutting-down: "[BotLoom] The extension is reloading, please try again later."

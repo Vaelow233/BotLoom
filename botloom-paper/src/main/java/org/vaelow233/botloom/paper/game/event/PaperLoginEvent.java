@@ -11,7 +11,7 @@ public class PaperLoginEvent extends LoginEvent {
     private final PlayerLoginEvent event;
 
     public PaperLoginEvent(PlayerLoginEvent event) {
-        super(event.getPlayer().getName(), event.getAddress());
+        super(new PaperPlayer(event.getPlayer()));
         this.event = event;
     }
 

@@ -16,9 +16,11 @@ dependencies {
     api("org.slf4j:slf4j-api:2.0.17")
     compileOnlyApi("org.jdbi:jdbi3-core:3.39.1")
     compileOnlyApi("org.jdbi:jdbi3-sqlobject:3.39.1")
+    compileOnly("org.flywaydb:flyway-core:9.22.3")
     compileOnly("com.zaxxer:HikariCP:4.0.3")
     compileOnly("org.xerial:sqlite-jdbc:3.53.4.0")
     compileOnly("com.mysql:mysql-connector-j:26.7.0")
+    compileOnly("org.flywaydb:flyway-mysql:9.22.3")
     compileOnly("org.postgresql:postgresql:42.7.13")
 }
 

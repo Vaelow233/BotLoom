@@ -3,6 +3,8 @@ plugins {
     id("java-library")
 }
 
+project.version = "1.0.0"
+
 repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.bxteam.org/releases")
@@ -11,15 +13,16 @@ repositories {
 
 dependencies {
     api(project(":botloom-core"))
+    annotationProcessor("org.pf4j:pf4j:3.15.1")
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     withSourcesJar()
     withJavadocJar()
@@ -27,4 +30,13 @@ java {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
+}
+
+tasks.jar {
+    manifest {
+        attributes(
+            "Plugin-Id" to "whitelist",
+            "Plugin-Version" to project.version.toString()
+        )
+    }
 }

@@ -3,14 +3,21 @@ package org.vaelow233.botloom.core.storage.database;
 import java.util.*;
 
 public enum DatabaseType {
-    MYSQL(Collections.singleton("mysql")),
-    SQLITE(Collections.singleton("sqlite")),
-    POSTGRES(new HashSet<>(Arrays.asList("postgres", "postgresql")));
+    MYSQL("mysql", Collections.singleton("mysql")),
+    SQLITE("sqlite", Collections.singleton("sqlite")),
+    POSTGRES("postgres", new HashSet<>(Arrays.asList("postgres", "postgresql")));
 
+    private final String name;
     private final Set<String> aliases;
 
-    DatabaseType(Set<String> aliases) {
+    DatabaseType(String name, Set<String> aliases) {
         this.aliases = aliases;
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     public Set<String> aliases() {

@@ -1,0 +1,6 @@
+CREATE TABLE whitelist_binds (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    created_at DATETIME(6) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
+);

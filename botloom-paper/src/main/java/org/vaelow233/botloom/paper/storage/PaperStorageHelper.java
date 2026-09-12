@@ -19,12 +19,14 @@ public class PaperStorageHelper extends ExternalStorageHelper {
         libraryManager.loadDependency("com.zaxxer:HikariCP:4.0.3");
         libraryManager.loadDependency("org.jdbi:jdbi3-core:3.39.1");
         libraryManager.loadDependency("org.jdbi:jdbi3-sqlobject:3.39.1");
+        libraryManager.loadDependency("org.flywaydb:flyway-core:9.22.3");
         switch (type) {
             case SQLITE:
                 libraryManager.loadDependency("org.xerial:sqlite-jdbc:3.53.4.0");
                 break;
             case MYSQL:
                 libraryManager.loadDependency("com.mysql:mysql-connector-j:26.7.0");
+                libraryManager.loadDependency("org.flywaydb:flyway-mysql:9.22.3");
                 break;
             case POSTGRES:
                 libraryManager.loadDependency("org.postgresql:postgresql:42.7.13");

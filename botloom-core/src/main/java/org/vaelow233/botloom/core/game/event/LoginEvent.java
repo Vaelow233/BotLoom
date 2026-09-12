@@ -1,22 +1,16 @@
 package org.vaelow233.botloom.core.game.event;
 
-import java.net.InetAddress;
+import org.vaelow233.botloom.core.adapter.BotLoomPlayer;
 
 public abstract class LoginEvent implements GameEvent {
-    private final String name;
-    private final InetAddress address;
+    private final BotLoomPlayer player;
 
-    protected LoginEvent(String name, InetAddress address) {
-        this.name = name;
-        this.address = address;
+    protected LoginEvent(BotLoomPlayer player) {
+        this.player = player;
     }
 
-    public String name() {
-        return name;
-    }
-
-    public InetAddress address() {
-        return address;
+    public BotLoomPlayer player() {
+        return player;
     }
 
     public abstract void disallow(String message);
