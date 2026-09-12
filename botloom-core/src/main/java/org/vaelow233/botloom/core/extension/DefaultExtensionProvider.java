@@ -1,9 +1,8 @@
 package org.vaelow233.botloom.core.extension;
 
-import org.pf4j.DefaultPluginManager;
+import org.pf4j.JarPluginManager;
 import org.pf4j.PluginManager;
 import org.slf4j.event.Level;
-import org.vaelow233.botloom.core.BotLoom;
 import org.vaelow233.botloom.core.exception.ExceptionHandler;
 
 import java.io.IOException;
@@ -18,7 +17,7 @@ public class DefaultExtensionProvider implements ExtensionProvider {
 
     public DefaultExtensionProvider(Path extensionDirectory) {
         this.extensionDirectory = extensionDirectory;
-        this.pluginManager = new DefaultPluginManager(this.extensionDirectory);
+        this.pluginManager = new JarPluginManager(this.extensionDirectory);
     }
 
     @Override
